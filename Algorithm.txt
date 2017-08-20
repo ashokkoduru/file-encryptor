@@ -1,0 +1,26 @@
+———————————— Algorithms, Key sizes and Modes————————————
+———————————— Encryption————————————
+
+The requirement of the problem set is to use both symmetric and asymmetric cryptography in order to achieve efficiency. So I combined RSA and AES to achieve the encryption. AES is used for encrypting the input message(whatever format it may be) and RSA is used for Encrypting the secret key used in AES and signing the message to achieve integrity.
+
+Encryption is divided in to 3 parts
+
+1. Generating a session key and encrypting it with RSA
+We will generate the key used in the AES randomly to ensure that same message is not encrypted in the same way every time. The session key is 256 bits long, which is strong enough for AES according to standards. I also generate a 128 bit random initialization vector which will be explained in the next step. Now I use the public key of the recipient to encrypt the session key and initialization vector so that he can get them with his private key for it to be used in the AES message encryption. I used RSA OAEP padding scheme to do the encryption since it is very secure due to its random padding. Here RSA is not used to encrypt the main message because it is very slow because of the key size.
+
+2. Encrypt the main plain text with AES along with CBC mode
+Since we have a securely encrypted session key, we use this key along with iv to an AES encryption scheme which will be used along with CBC(cipher block chaining mode), because CBC is more secure than EBC. We will include randomly generated iv because CBC security depends mostly on first block. So it should not be same every time. The plain text also needs padding to match the block size of the AES encryption.
+
+3. Signing the encrypted message to achieve integrity
+We should also make sure that recipient is aware that sender of the message is authentic. Recipient also has the public key of the sender. So I generate a random 256 bit message and sign it with RSA signature hash algorithm. I used the PSS along with SHA256 and signed with sender private key. I included both original message and its digest in the final message so the destination will verify it with sender public key and can confirm that the message is authentic.
+
+———————————— Decryption————————————
+
+
+Decryption is exactly opposite of the encryption
+
+1. Verification of integrity of the message
+The receiver will first verify the signature message with its digest by un-hashing it with public key of the sender. If it does not match, we know that message is not sent by the sender and application will exit.
+
+2. Decrypting the plain text
+Once the message is verified, we can use the recipients private key and decrypt the session key and the initialization vector. Once they are retrieved decrypt the message using AES and unpad the decrypted output of the AES. We are left with the initial message sent by the sender.
